@@ -1,7 +1,7 @@
 .PHONY: test
 
 test:
-	@py.test --cov --cov-report term-missing
+	@py.test --cov=. --cov-report term-missing
 	@coverage html
 
 clean:

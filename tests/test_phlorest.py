@@ -1,4 +1,5 @@
 from phlorest import Phlorest, read_details, read_taxa
+from phlorest.create import create
 
 EXPECTED_DETAILS = {
     'id': 'greenhill2015',
@@ -74,3 +75,15 @@ def test_phlorest(g2015):
     
     # defined in data:
     assert g2015.cldf == 'http://...'
+    
+
+def test_check(g2015, tmp_path):
+    assert g2015.check() == True
+    create(tmp_path, 'test_check')
+    expected = [
+        'makefile', 'source', 'original', 'paper', 'nexus', 'data', 'cldf',
+        'summary.trees', 'posterior.trees', 'details.txt', 'taxa.csv'
+    ]
+    errors = Phlorest(tmp_path / 'test_check').check()
+    for e in expected:
+        assert e in errors, 'should have failed on %s' % e

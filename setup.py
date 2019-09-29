@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # coding=utf-8
+# pragma: no cover
 import io
 import os
 import sys
@@ -39,7 +40,7 @@ setup(
     tests_require=['pytest'],
     url=URL,
     packages=find_packages(),
-    install_requires=['clldutils'],
+    install_requires=['clldutils', 'tabulate'],
     include_package_data=True,
     entry_points={
         'console_scripts': ['phlorest=phlorest.__main__:main'],

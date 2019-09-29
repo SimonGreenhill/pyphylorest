@@ -57,15 +57,20 @@ class Phlorest:
     
     @property
     def taxa(self):
-        if not self.__taxa:
+        if not (self.dirname / 'taxa.csv').exists():  # pragma: no cover
+            self.__taxa = {}
+        elif not self.__taxa:
             self.__taxa = read_taxa(self.dirname / 'taxa.csv')
         return self.__taxa
     
     # files
     @property
     def makefile(self):
-        return self._get('Makefile').read_text('utf8')
-
+        try:
+            return self._get('Makefile').read_text('utf8')
+        except:
+            return None
+            
     @property
     def source(self):
         return self._get('source.bib').read_text('utf8')
@@ -104,4 +109,18 @@ class Phlorest:
         }
 
     def check(self):
-        raise NotImplementedException('..')
+        attrs = [
+            'makefile', 'source',
+            'original', 'paper', 'nexus', 'data'
+        ]
+        errors = [a for a in attrs if not getattr(self, a)]
+        # special checks
+        if not self.treefiles['summary']:
+            errors.append("summary.trees")
+        if not self.treefiles['posterior']:
+            errors.append("posterior.trees")
+        if not self.details.get('id'):  # empty details
+            errors.append("details.txt")
+        if not len(self.taxa.keys()):  # no taxa defined
+            errors.append("taxa.csv")
+        return errors
