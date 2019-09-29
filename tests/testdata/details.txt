@@ -1,0 +1,8 @@
+id: greenhill2015
+name: Huon Peninsula (Greenhill 2015)
+author: Greenhill
+year: 2015
+scaling: change
+reference: Greenhill, S. J. (2015). TransNewGuinea.org: An Online ...
+url: https://dx.doi.org/10.1371/journal.pone.0141563
+cldf: http://...
