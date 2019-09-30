@@ -1,3 +1,4 @@
+# coding=utf-8
 from phlorest import Phlorest, read_details, read_taxa
 from phlorest.create import create
 

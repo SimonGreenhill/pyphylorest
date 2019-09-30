@@ -1,3 +1,4 @@
+# coding=utf-8
 dirs_to_create = ['original', 'nexus', 'paper', 'data']
 
 # files to create

@@ -37,7 +37,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    tests_require=['pytest', 'pytest-mock'],
     url=URL,
     packages=find_packages(),
     install_requires=['clldutils', 'tabulate'],
