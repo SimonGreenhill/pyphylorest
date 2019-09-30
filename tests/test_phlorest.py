@@ -78,10 +78,10 @@ def test_phlorest(g2015):
     
 
 def test_check(g2015, tmp_path):
-    assert g2015.check() == True
+    assert g2015.check() == []
     create(tmp_path, 'test_check')
     expected = [
-        'makefile', 'source', 'original', 'paper', 'nexus', 'data', 'cldf',
+        'makefile', 'source', 'original', 'paper', 'nexus', 'data',
         'summary.trees', 'posterior.trees', 'details.txt', 'taxa.csv'
     ]
     errors = Phlorest(tmp_path / 'test_check').check()
