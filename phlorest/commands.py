@@ -35,3 +35,25 @@ def check(args):
         errors = '✅' if not errors else ", ".join(sorted(errors))
         rows.append([ds, errors])
     print(tabulate(rows, headers=['Dataset', 'Errors'], tablefmt="github"))
+
+
+@command(name='dplace', usage="prints out DPLACE index.csv information")
+def dplace(args):
+    import sys, csv
+    
+    if len(args.args) != 1:
+        raise ParserError("need a dataset name")
+    
+    ds = args.repos.datasets.get(args.args[0])
+    assert ds is not None, "Unknown dataset %s" % args.args[0]
+    writer = csv.writer(sys.stdout)
+    writer.writerow(['id', 'name', 'author', 'year', 'scaling', 'reference', 'url'])
+    writer.writerow([
+        ds.details.get('id', ''),
+        ds.details.get('name', ''),
+        ds.details.get('author', ''),
+        ds.details.get('year', ''),
+        ds.details.get('scaling', ''),
+        ds.details.get('reference', ''),
+        ds.details.get('url', ''),
+    ])
