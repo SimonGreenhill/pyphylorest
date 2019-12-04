@@ -1,5 +1,5 @@
 # coding=utf-8
-dirs_to_create = ['original', 'nexus', 'paper', 'data']
+dirs_to_create = ['original', 'paper', 'data']
 
 # files to create
 files_to_create = {}
@@ -14,9 +14,7 @@ url:
 data:
 cldf:
 """
-files_to_create['notes.txt'] = """
-# Notes
-"""
+files_to_create['notes.txt'] = """# Notes\n"""
 
 files_to_create['taxa.csv'] = "taxon,isocode,glottocode,xd_ids,soc_ids\n"
 

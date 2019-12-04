@@ -90,7 +90,11 @@ class Phlorest:
 
     @property
     def nexus(self):
-        return self._get('nexus')
+        return self._get('data.nex')
+
+    @property
+    def characters(self):
+        return self._get('characters.txt')
 
     @property
     def data(self):
@@ -111,7 +115,8 @@ class Phlorest:
     def check(self):
         attrs = [
             'makefile', 'source',
-            'original', 'paper', 'nexus', 'data'
+            'original', 'paper', 'data',
+            'nexus', 'characters',
         ]
         errors = [a for a in attrs if not getattr(self, a)]
         # special checks
@@ -123,4 +128,6 @@ class Phlorest:
             errors.append("details.txt")
         if not len(self.taxa.keys()):  # no taxa defined
             errors.append("taxa.csv")
+        if len(self.source) == 0:
+            errors.append("source")  # empty source
         return errors

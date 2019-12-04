@@ -10,12 +10,15 @@ def listdatasets(args):
         rows.append([
             i,
             ds,
+            '🗞' if 'paper' not in errors else '',
             '🌿' if 'summary.trees' not in errors else '',
             '🌳' if 'posterior.trees' not in errors else '',
             '💾' if 'nexus' not in errors else '',
+            '🏷' if 'characters' not in errors else '',
             '💬' if 'data' not in errors else '',
+            '🎈' if 'source' not in errors else '',
         ])
-    headers = headers=['#', 'Dataset', 'mcct', 'posterior', 'nexus', 'data']
+    headers = headers=['#', 'Dataset', 'Paper', 'Tree', 'Post.', 'Nex', 'Chars', 'Data', 'Bib']
     print(tabulate(rows, headers=headers, tablefmt="github"))
 
 
@@ -57,3 +60,4 @@ def dplace(args):
         ds.details.get('reference', ''),
         ds.details.get('url', ''),
     ])
+

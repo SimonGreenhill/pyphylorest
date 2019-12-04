@@ -10,6 +10,7 @@ triggered using this cli, most of them require common configuration.
 The basic invocation looks like
     phlorest [OPTIONS] <command> [args]
 """
+import os
 import sys
 from clldutils.clilib import ArgumentParserWithLogging
 
@@ -17,12 +18,13 @@ import phlorest
 from phlorest import commands
 assert commands
 
+PHLOREST = os.environ.get('PHLOREST', 'phlorest')
 
 def main():  # pragma: no cover
     parser = ArgumentParserWithLogging(phlorest.__name__)
     parser.add_argument(
         '--repos',
         type=phlorest.Repos,
-        default=phlorest.Repos('phlorest'),
+        default=phlorest.Repos(PHLOREST),
         help='Location of clone of phlorest data (defaults to ./phlorest)')
     sys.exit(parser.main())

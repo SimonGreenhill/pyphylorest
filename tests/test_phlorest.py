@@ -65,9 +65,8 @@ def test_phlorest(g2015):
     assert g2015.notes.startswith('# Notes')
     
     # dirs...
-    assert len(g2015.original) == 4
+    assert len(g2015.original) == 5
     assert g2015.paper == [g2015.dirname / 'paper' / 'Greenhill2015.pdf']
-    assert g2015.nexus == [g2015.dirname / 'nexus' / 'mcelhanon-1967.nex']
     assert g2015.data == [g2015.dirname / 'data' / 'mcelhanon-1967.dat']
     
     # trees
