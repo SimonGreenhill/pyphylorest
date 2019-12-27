@@ -117,6 +117,7 @@ class Phlorest:
             'makefile', 'source',
             'original', 'paper', 'data',
             'nexus', 'characters',
+            'cldf',
         ]
         errors = [a for a in attrs if not getattr(self, a)]
         # special checks
