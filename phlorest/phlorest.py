@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 # coding=utf-8
 import csv
+import logging
 from pathlib import Path
 
+import yaml
 
-def read_details(path):
-    out = {}
-    with path.open('r', encoding="utf8") as handle:
-        for line in handle:
-            if ':' in line:
-                k, v = [_.strip() for _ in line.split(":", 1)]
-                assert k not in v, 'Duplicate key %s' % k
-                out[k] = v
-    return out
+logger = logging.getLogger(__name__)
+
+
+SCALINGS = [
+    None,
+    'NA',  # no branch lengths
+    'arbitrary', 
+    'change',  # parsimony steps
+    'substitutions',  # change
+    'years',  # years
+    'centuries',  # centuries
+    'millennia',  # millennia
+]
 
 
 def read_taxa(path):
@@ -32,15 +38,14 @@ def read_taxa(path):
 class Phlorest:
     def __init__(self, dirname):
         self.dirname = Path(dirname)
-        self.__details, self.__taxa = None, None  # lazy caches
+        self.logging = logging.getLogger(self.dirname.stem)
+        self._details, self._taxa = None, None  # lazy caches
+        self._validate()
     
     def __repr__(self):
         return '<Phlorest Dataset %s>' % self.details.get('id', '?')
-    
-    def _get(self, filename):
-        if self.details.get(filename):  # override with details
-            return self.details.get(filename)
         
+    def _get(self, filename):
         filename = self.dirname / filename
         if not filename.exists():
             return None
@@ -49,35 +54,42 @@ class Phlorest:
         else:
             return filename
 
+    def _validate(self):  # pragma: no cover
+        if self.details.get('scaling') not in SCALINGS:
+            self.logging.warning(
+                "Unknown Scaling '%s'" % self.details.get('scaling')
+            )
+        if len(self.taxa) == 0:
+            self.logging.warning("No taxa defined")
+        return True
+
     @property
     def details(self):
-        if not self.__details:
-            self.__details = read_details(self.dirname / 'details.txt')
-        return self.__details
+        if not self._details:
+            with (self.dirname / 'details.txt').open('r', encoding="utf8") as handle:
+                self._details = yaml.load(handle, Loader=yaml.FullLoader)
+        return self._details
     
     @property
     def taxa(self):
         if not (self.dirname / 'taxa.csv').exists():  # pragma: no cover
-            self.__taxa = {}
-        elif not self.__taxa:
-            self.__taxa = read_taxa(self.dirname / 'taxa.csv')
-        return self.__taxa
+            self._taxa = {}
+        elif not self._taxa:
+            self._taxa = read_taxa(self.dirname / 'taxa.csv')
+        return self._taxa
     
     # files
     @property
     def makefile(self):
-        try:
-            return self._get('Makefile').read_text('utf8')
-        except:
-            return None
+        return self._get("Makefile")
             
     @property
     def source(self):
-        return self._get('source.bib').read_text('utf8')
+        return self._get("source.bib")
 
     @property
     def notes(self):
-        return self._get('notes.txt').read_text('utf8')
+        return self._get("notes.txt")
 
     # dirs
     @property
@@ -90,7 +102,7 @@ class Phlorest:
 
     @property
     def nexus(self):
-        return self._get('data.nex')
+        return self._get("data.nex")
 
     @property
     def characters(self):
@@ -102,33 +114,30 @@ class Phlorest:
 
     @property
     def cldf(self):
-        return self._get('cldf')
-    
-    # misc
-    @property
-    def treefiles(self):
-        return {
-            'summary': self._get("summary.trees"),
-            'posterior': self._get("posterior.trees"),
-        }
+        return self.details.get('cldf')
 
+    @property
+    def summary(self):
+        return self._get("summary.trees")
+
+    @property
+    def posterior(self):
+        return self._get("posterior.trees")
+    
     def check(self):
         attrs = [
             'makefile', 'source',
             'original', 'paper', 'data',
             'nexus', 'characters',
             'cldf',
+            'summary', 'posterior',
         ]
         errors = [a for a in attrs if not getattr(self, a)]
         # special checks
-        if not self.treefiles['summary']:
-            errors.append("summary.trees")
-        if not self.treefiles['posterior']:
-            errors.append("posterior.trees")
         if not self.details.get('id'):  # empty details
             errors.append("details.txt")
         if not len(self.taxa.keys()):  # no taxa defined
             errors.append("taxa.csv")
-        if len(self.source) == 0:
+        if self.source and len(self.source.read_text()) == 0:
             errors.append("source")  # empty source
         return errors

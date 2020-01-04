@@ -1,4 +1,5 @@
 # coding=utf-8
+from textwrap import dedent
 from clldutils.clilib import command, ParserError
 from tabulate import tabulate
 
@@ -11,8 +12,8 @@ def listdatasets(args):
             i,
             ds,
             '🗞' if 'paper' not in errors else '',
-            '🌿' if 'summary.trees' not in errors else '',
-            '🌳' if 'posterior.trees' not in errors else '',
+            '🌿' if 'summary' not in errors else '',
+            '🌳' if 'posterior' not in errors else '',
             '💾' if 'nexus' not in errors else '',
             '🏷' if 'characters' not in errors else '',
             '💬' if 'data' not in errors else '',
@@ -63,7 +64,6 @@ def dplace(args):
     ])
 
 
-
 @command(name='beast2chars', usage="prints out a character block from a beast2 XML file")
 def beast2chars(args):
     import xml.etree.ElementTree as ElementTree
@@ -79,27 +79,80 @@ def beast2chars(args):
         x, y = [int(_) for _ in p.get('filter').split("-")]
         return (p.get('id'), x, y)
         
-    def printchar(p, x, y):
+    def printchar(p, x, y, ascertained=False):
         n = 1
         for i in range(x, y + 1):
-            print(i, p, n)
+            label = "%s-%s" % (p, 'ascertained' if n == 1 and ascertained else str(n))
+            print(i, label)
             n += 1
+    
+    def get_by_id(data_id):
+        if data_id.startswith("@"):
+            data_id = data_id.lstrip("@")
+        return xml.find(".//alignment[@id='%s']" % data_id)
         
-        
+    
     if len(args.args) != 1:
         raise ParserError("need an XML filename")
     
     xml = ElementTree.parse(args.args[0])
     
     for treelh in xml.findall(".//distribution[@spec='TreeLikelihood']"):
-        data_id = treelh.get('data')
-        if data_id:
-            # find correct one
-            if data_id.startswith("@"):
-                data_id = data_id.lstrip("@")
-            data = xml.find(".//alignment[@id='%s']/data" % data_id)
-            printchar(*get_partition(data))
+        if treelh.get('data'):
+            data = get_by_id(treelh.get('data'))
+            ascertained = data.get('ascertained') == 'true'
+            printchar(*get_partition(data.find('./data')), ascertained=ascertained)
         else:
-            data = treelh.find('./data')  # do we need this?
-            datadata = treelh.find('./data/data')
-            printchar(*get_partition(datadata))
+            data = treelh.find('./data')
+            ascertained = data.get('ascertained') == 'true'
+            if data.get('data'):
+                datadata = get_by_id(data.get('data'))
+            else:
+                datadata = treelh.find('./data/data')
+            printchar(*get_partition(datadata), ascertained=ascertained)
+
+
+@command(name='itemise', usage="lists all the values for a given item")
+def itemise(args):
+    if len(args.args) != 1:
+        raise ParserError("need a value to itemise")
+    
+    for ds in sorted(args.repos.datasets):
+        d = args.repos.datasets[ds]
+        
+        try:
+            dvalue = getattr(d, args.args[0])
+        except AttributeError:
+            dvalue = d.details.get(args.args[0], None)
+            
+        print("%s = %s" % (ds.ljust(40), dvalue))
+
+
+
+@command(name='readme', usage="makes a readme.md file")
+def readme(args):
+    if len(args.args) != 1:
+        raise ParserError("need a dataset name")
+    
+    ds = args.repos.datasets.get(args.args[0])
+    assert ds is not None, "Unknown dataset %s" % args.args[0]
+    
+    print(dedent(f"""\
+    # {ds.details['id']} - {ds.details['name']}:
+    
+    Please Cite:
+    
+    ```
+    {ds.details['reference']}
+    {ds.details['url']}
+    ```
+    
+    ## Statistics:
+    
+    * {len(ds.taxa)} taxa
+    
+    ## Problems:
+    """
+    ))
+    for e in ds.check():
+        print("* missing '%s'" % e)

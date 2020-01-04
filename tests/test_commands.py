@@ -41,4 +41,20 @@ def test_dplace(repos, mocker, capsys):
     assert 'greenhill2015,Huon Peninsula (Greenhill 2015),' in captured.out
 
 
+def test_readme(repos, mocker, capsys):
+    with pytest.raises(ParserError) as e:
+        phlorest.commands.readme(mocker.Mock(repos=repos, args=[]))
+
+    phlorest.commands.readme(mocker.Mock(repos=repos, args=['testdata']))
+    captured = capsys.readouterr()
+    assert captured.out.startswith('# greenhill2015 - Huon Peninsula (Greenhill 2015):')
+
+
+def test_itemise(repos, mocker, capsys):
+    with pytest.raises(ParserError) as e:
+        phlorest.commands.itemise(mocker.Mock(repos=repos, args=[]))
+
+    phlorest.commands.itemise(mocker.Mock(repos=repos, args=['scaling']))
+    captured = capsys.readouterr()
+    assert 'change' in captured.out
 

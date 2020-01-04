@@ -1,12 +1,12 @@
 # coding=utf-8
-from phlorest import Phlorest, read_details, read_taxa
+from phlorest import Phlorest, read_taxa
 from phlorest.create import create
 
 EXPECTED_DETAILS = {
     'id': 'greenhill2015',
     'name': 'Huon Peninsula (Greenhill 2015)',
     'author': 'Greenhill',
-    'year': '2015',
+    'year': 2015,
     'scaling': 'change',
     'reference': 'Greenhill, S. J. (2015). TransNewGuinea.org: An Online ...',
     'url': 'https://dx.doi.org/10.1371/journal.pone.0141563',
@@ -34,7 +34,7 @@ def test_repr(g2015):
     assert repr(g2015) == '<Phlorest Dataset greenhill2015>'
 
 
-def test_read_details(g2015):
+def test_details(g2015):
     for e in EXPECTED_DETAILS:
         assert e in g2015.details
         assert g2015.details[e] == EXPECTED_DETAILS[e]
@@ -60,9 +60,9 @@ def test_phlorest(g2015):
     assert len(g2015.taxa) == len(EXPECTED_TAXA)  # full test in test_read_taxa
     
     # files
-    assert g2015.makefile.startswith('all: summary.trees posterior.trees')
-    assert g2015.source.startswith('@article{Greenhill2015,')
-    assert g2015.notes.startswith('# Notes')
+    assert g2015.makefile.read_text().startswith('all: summary.trees posterior.trees')
+    assert g2015.source.read_text().startswith('@article{Greenhill2015,')
+    assert g2015.notes.read_text().startswith('# Notes')
     
     # dirs...
     assert len(g2015.original) == 5
@@ -70,8 +70,8 @@ def test_phlorest(g2015):
     assert g2015.data == [g2015.dirname / 'data' / 'mcelhanon-1967.dat']
     
     # trees
-    assert g2015.treefiles['summary'] == g2015.dirname / 'summary.trees'
-    assert g2015.treefiles['posterior'] == g2015.dirname / 'posterior.trees'
+    assert g2015.summary == g2015.dirname / 'summary.trees'
+    assert g2015.posterior == g2015.dirname / 'posterior.trees'
     
     # defined in data:
     assert g2015.cldf == 'http://...'
@@ -82,8 +82,9 @@ def test_check(g2015, tmp_path):
     create(tmp_path, 'test_check')
     expected = [
         'makefile', 'source', 'original', 'paper', 'nexus', 'data',
-        'summary.trees', 'posterior.trees', 'details.txt', 'taxa.csv'
+        'summary', 'posterior', 'details.txt', 'taxa.csv'
     ]
     errors = Phlorest(tmp_path / 'test_check').check()
     for e in expected:
         assert e in errors, 'should have failed on %s' % e
+
