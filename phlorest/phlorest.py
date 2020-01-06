@@ -110,7 +110,7 @@ class Phlorest:
 
     @property
     def data(self):
-        return self._get('data')
+        return self.details.get('data', self._get('data'))
 
     @property
     def cldf(self):

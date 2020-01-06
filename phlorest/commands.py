@@ -1,4 +1,5 @@
 # coding=utf-8
+from pathlib import Path
 from textwrap import dedent
 from clldutils.clilib import command, ParserError
 from tabulate import tabulate
@@ -134,25 +135,44 @@ def readme(args):
     if len(args.args) != 1:
         raise ParserError("need a dataset name")
     
+    def fmt(x):
+        template = "[%(var)s](%(var)s)"
+        if x is None:  # pragma: no cover
+            return None
+        elif isinstance(x, Path):
+            return template % {'var': x.relative_to(ds.dirname)}
+        else:
+            return template % {'var': x}
+    
     ds = args.repos.datasets.get(args.args[0])
     assert ds is not None, "Unknown dataset %s" % args.args[0]
     
-    print(dedent(f"""\
-    # {ds.details['id']} - {ds.details['name']}:
+    nchar = ""
+    if ds.characters:
+        nchar = "%d characters - " % len(ds.characters.read_text().split("\n"))
     
-    Please Cite:
+    print(dedent(f"""\
+    # {ds.details['name']}:
     
     ```
     {ds.details['reference']}
-    {ds.details['url']}
     ```
     
-    ## Statistics:
+    * ID: {ds.details['id']}:
+    * URL: {fmt(ds.details['url'])}
+    * Paper: {fmt(ds.dirname / 'paper')}
+    * Original Files: {fmt(ds.dirname / 'original')}
+    * Scaling: {ds.details['scaling']}
+    * Taxa: {len(ds.taxa)} taxa 
+    * Data: {fmt(ds.dirname / 'data')}
+    * Nexus: {fmt(ds.nexus)}
+    * Character Specification: {nchar}{fmt(ds.characters)}
+    * Summary Tree: {fmt(ds.summary)}
+    * Posterior Probability Distribution: {fmt(ds.posterior)}
     
-    * {len(ds.taxa)} taxa
+    ## Errors:
+    """))
     
-    ## Problems:
-    """
-    ))
-    for e in ds.check():
-        print("* missing '%s'" % e)
+    for e in ds.check():  # pragma: no cover
+        print("* missing %s" % e)
+    

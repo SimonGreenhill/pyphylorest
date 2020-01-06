@@ -47,7 +47,10 @@ def test_readme(repos, mocker, capsys):
 
     phlorest.commands.readme(mocker.Mock(repos=repos, args=['testdata']))
     captured = capsys.readouterr()
-    assert captured.out.startswith('# greenhill2015 - Huon Peninsula (Greenhill 2015):')
+    assert captured.out.startswith('# Huon Peninsula (Greenhill 2015):')
+    assert '[summary.trees](summary.trees)' in captured.out
+    assert '14 taxa' in captured.out
+    assert '2 characters'
 
 
 def test_itemise(repos, mocker, capsys):
