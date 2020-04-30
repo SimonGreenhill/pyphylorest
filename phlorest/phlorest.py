@@ -135,6 +135,17 @@ class Phlorest:
                     warn(
                         "Unknown tips in %s.%s: %r" % (self.details.get('id', '?'), tf.stem, unknown)
                     )
+        # if we have a data file, the taxa should match the taxa.csv
+        if self.nexus and self.taxa:
+            nex = NexusReader(self.nexus)
+            if not nex.data:
+                warn("No data in %s data.nex!" % self.details.get('id', '?'))
+            unknown = [t for t in nex.data.taxa if t not in self.taxa]
+            if len(unknown):
+                warn(
+                    "Unknown tips in %s data.nex: %r" % (self.details.get('id', '?'), unknown)
+                )
+        
         # if we have characters they should match the nexus
         if self.characters and self.nexus:
             nex = NexusReader(self.nexus)

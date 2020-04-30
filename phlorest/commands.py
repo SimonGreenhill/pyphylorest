@@ -1,8 +1,12 @@
 # coding=utf-8
+import warnings
 from pathlib import Path
 from textwrap import dedent
 from clldutils.clilib import command, ParserError
 from tabulate import tabulate
+
+CHECKMARK = '✅'
+ERROR = '❌'
 
 @command(name='list', usage="list the datasets")
 def listdatasets(args):
@@ -35,13 +39,28 @@ def new(args):
 
 @command(name='check', usage="checks datasets")
 def check(args):
-    rows, validation_errors = [], []
+    rows = []
     for ds in sorted(args.repos.datasets):
-        errors = args.repos.datasets[ds].check(validate=True)
-        errors = '✅' if not errors else ", ".join(sorted(errors))
+        errors = args.repos.datasets[ds].check()
+        errors = CHECKMARK if not errors else ", ".join(sorted(errors))
         rows.append([ds, errors])
-        
     print(tabulate(rows, headers=['Dataset', 'Errors'], tablefmt="github"))
+
+
+@command(name='validate', usage="runs validation")
+def validate(args):
+    for ds in sorted(args.repos.datasets):
+        with warnings.catch_warnings(record=True) as warned:
+            warnings.simplefilter("always")
+            args.repos.datasets[ds].validate()
+            if not warned:
+                print("%s %s" % (CHECKMARK, ds))
+            else:
+                print("%s %s" % (ERROR, ds))
+                for w in warned:
+                    print("\t%s" % w.message)
+                print()
+            
 
 
 @command(name='dplace', usage="prints out DPLACE index.csv information")
