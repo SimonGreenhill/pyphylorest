@@ -6,6 +6,8 @@ from pathlib import Path
 
 import yaml
 
+from nexus import NexusReader
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +23,7 @@ SCALINGS = [
 ]
 
 
-def read_taxa(path):
-    out = {}
+def read_csv(path):
     with path.open('r', encoding="utf8") as handle:
         reader = csv.reader(handle)
         header = False
@@ -30,9 +31,7 @@ def read_taxa(path):
             if not header:
                 header = row
             else:
-                row = dict(zip(header, row))
-                out[row['taxon']] = row
-    return out
+                yield dict(zip(header, row))
 
 
 class Phlorest:
@@ -40,7 +39,6 @@ class Phlorest:
         self.dirname = Path(dirname)
         self.logging = logging.getLogger(self.dirname.stem)
         self._details, self._taxa = None, None  # lazy caches
-        self._validate()
     
     def __repr__(self):
         return '<Phlorest Dataset %s>' % self.details.get('id', '?')
@@ -54,15 +52,6 @@ class Phlorest:
         else:
             return filename
 
-    def _validate(self):  # pragma: no cover
-        if self.details.get('scaling') not in SCALINGS:
-            self.logging.warning(
-                "Unknown Scaling '%s'" % self.details.get('scaling')
-            )
-        if len(self.taxa) == 0:
-            self.logging.warning("No taxa defined")
-        return True
-
     @property
     def details(self):
         if not self._details:
@@ -75,7 +64,7 @@ class Phlorest:
         if not (self.dirname / 'taxa.csv').exists():  # pragma: no cover
             self._taxa = {}
         elif not self._taxa:
-            self._taxa = read_taxa(self.dirname / 'taxa.csv')
+            self._taxa = {row['taxon']: row for row in read_csv(self.dirname / 'taxa.csv')}
         return self._taxa
     
     # files
@@ -124,7 +113,36 @@ class Phlorest:
     def posterior(self):
         return self._get("posterior.trees")
     
-    def check(self):
+    def validate(self):
+        # check scaling
+        if self.details.get('scaling') not in SCALINGS:
+            self.logging.warning(
+                "Unknown Scaling '%s'" % self.details.get('scaling')
+            )
+        if len(self.taxa) == 0:
+            self.logging.warning("No taxa defined")
+        
+        # check trees
+        for tf in [self.summary, self.posterior]:
+            if tf and tf.exists():
+                nex = NexusReader(tf)
+                if not nex.trees:
+                    self.logging.warning("No trees in %s.%s!" % (self.details.get('id', '?'), tf.stem))
+                # are all the taxa in the tree listed in the taxa table?
+                unknown = [t for t in nex.trees.taxa if t not in self.taxa]
+                if len(unknown):
+                    self.logging.warning(
+                        "Unknown tips in %s.%s: %r" % (self.details.get('id', '?'), tf.stem, unknown)
+                    )
+        # if we have characters they should match the nexus
+        if self.characters and self.nexus:
+            nex = NexusReader(self.nexus)
+            if not nex.data:
+                self.logging.warning("No data in %s.%s!" % (self.details.get('id', '?'), tf.stem))
+            
+            
+        
+    def check(self, validate=False):
         attrs = [
             'makefile', 'source',
             'original', 'paper', 'data',
@@ -140,4 +158,7 @@ class Phlorest:
             errors.append("taxa.csv")
         if self.source and len(self.source.read_text()) == 0:
             errors.append("source")  # empty source
+        
+        if validate:
+            self.validate()
         return errors

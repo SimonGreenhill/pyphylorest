@@ -40,7 +40,7 @@ setup(
     tests_require=['pytest', 'pytest-mock'],
     url=URL,
     packages=find_packages(),
-    install_requires=['clldutils', 'tabulate', 'python-nexus', 'pyyaml'],
+    install_requires=['clldutils', 'tabulate', 'python-nexus>=2.0.2', 'pyyaml'],
     include_package_data=True,
     entry_points={
         'console_scripts': ['phlorest=phlorest.__main__:main'],

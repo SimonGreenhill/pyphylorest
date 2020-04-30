@@ -1,5 +1,5 @@
 # coding=utf-8
-from phlorest import Phlorest, read_taxa
+from phlorest import Phlorest, read_csv
 from phlorest.create import create
 
 EXPECTED_DETAILS = {
@@ -40,7 +40,7 @@ def test_details(g2015):
         assert g2015.details[e] == EXPECTED_DETAILS[e]
 
 
-def test_read_taxa(g2015):
+def test_read_csv(g2015):
     for e in EXPECTED_TAXA:
         assert e in g2015.taxa
         assert g2015.taxa[e] == EXPECTED_TAXA[e]

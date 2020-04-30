@@ -1,2 +1,2 @@
-from .phlorest import Phlorest, read_taxa
+from .phlorest import Phlorest
 from .api import Repos

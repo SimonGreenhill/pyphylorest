@@ -35,11 +35,12 @@ def new(args):
 
 @command(name='check', usage="checks datasets")
 def check(args):
-    rows = []
+    rows, validation_errors = [], []
     for ds in sorted(args.repos.datasets):
-        errors = args.repos.datasets[ds].check()
+        errors = args.repos.datasets[ds].check(validate=True)
         errors = '✅' if not errors else ", ".join(sorted(errors))
         rows.append([ds, errors])
+        
     print(tabulate(rows, headers=['Dataset', 'Errors'], tablefmt="github"))
 
 
