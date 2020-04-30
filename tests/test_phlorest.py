@@ -1,4 +1,5 @@
 # coding=utf-8
+import pytest
 from phlorest import Phlorest, read_csv
 from phlorest.create import create
 
@@ -82,9 +83,13 @@ def test_check(g2015, tmp_path):
     create(tmp_path, 'test_check')
     expected = [
         'makefile', 'source', 'original', 'paper', 'nexus', 'data',
-        'summary', 'posterior', 'details.txt', 'taxa.csv'
+        'summary', 'posterior', 'details.txt', 'taxa.csv', 'characters',
     ]
     errors = Phlorest(tmp_path / 'test_check').check()
     for e in expected:
         assert e in errors, 'should have failed on %s' % e
 
+
+def test_validate(g2015, tmp_path):
+    with pytest.warns(UserWarning, match='No data in greenhill2015'):
+        g2015.validate()

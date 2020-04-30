@@ -2,6 +2,7 @@
 # coding=utf-8
 import csv
 import logging
+from warnings import warn
 from pathlib import Path
 
 import yaml
@@ -24,9 +25,9 @@ SCALINGS = [
 
 
 def read_csv(path):
+    header = False
     with path.open('r', encoding="utf8") as handle:
         reader = csv.reader(handle)
-        header = False
         for row in reader:
             if not header:
                 header = row
@@ -95,7 +96,7 @@ class Phlorest:
 
     @property
     def characters(self):
-        return self._get('characters.txt')
+        return self._get('characters.csv')
 
     @property
     def data(self):
@@ -116,30 +117,32 @@ class Phlorest:
     def validate(self):
         # check scaling
         if self.details.get('scaling') not in SCALINGS:
-            self.logging.warning(
+            warn(
                 "Unknown Scaling '%s'" % self.details.get('scaling')
             )
         if len(self.taxa) == 0:
-            self.logging.warning("No taxa defined")
+            warn("No taxa defined")
         
         # check trees
         for tf in [self.summary, self.posterior]:
             if tf and tf.exists():
                 nex = NexusReader(tf)
                 if not nex.trees:
-                    self.logging.warning("No trees in %s.%s!" % (self.details.get('id', '?'), tf.stem))
+                    warn("No trees in %s.%s!" % (self.details.get('id', '?'), tf.stem))
                 # are all the taxa in the tree listed in the taxa table?
                 unknown = [t for t in nex.trees.taxa if t not in self.taxa]
                 if len(unknown):
-                    self.logging.warning(
+                    warn(
                         "Unknown tips in %s.%s: %r" % (self.details.get('id', '?'), tf.stem, unknown)
                     )
         # if we have characters they should match the nexus
         if self.characters and self.nexus:
             nex = NexusReader(self.nexus)
             if not nex.data:
-                self.logging.warning("No data in %s.%s!" % (self.details.get('id', '?'), tf.stem))
+                warn("No data in %s.%s!" % (self.details.get('id', '?'), tf.stem))
             
+            if [i for i, r in enumerate(read_csv(self.characters), 1)][-1] != nex.data.nchar:
+                warn("characters.csv incorrect in %s!" % self.details.get('id', '?'))
             
         
     def check(self, validate=False):

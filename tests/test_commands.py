@@ -16,7 +16,8 @@ def test_listdatasets(repos, mocker, capsys):
 
 
 def test_check(repos, mocker, capsys):
-    phlorest.commands.check(mocker.Mock(repos=repos, args=[]))
+    with pytest.warns(UserWarning, match='No data in greenhill2015'):
+        phlorest.commands.check(mocker.Mock(repos=repos, args=[]))
     captured = capsys.readouterr()
     assert 'Dataset' in captured.out
     assert 'testdata' in captured.out
