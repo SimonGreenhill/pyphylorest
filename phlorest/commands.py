@@ -10,6 +10,15 @@ ERROR = '❌'
 
 @command(name='list', usage="list the datasets")
 def listdatasets(args):
+    
+    def label_trees(errors):
+        out = ''
+        if 'summary' not in errors:
+            out += '🌿'
+        if 'posterior' not in errors:
+            out += '🌳'
+        return out
+    
     rows = []
     for i, ds in enumerate(sorted(args.repos.datasets), 1):
         errors = args.repos.datasets[ds].check()
@@ -17,15 +26,15 @@ def listdatasets(args):
             i,
             ds,
             '🗞' if 'paper' not in errors else '',
-            '🌿' if 'summary' not in errors else '',
-            '🌳' if 'posterior' not in errors else '',
+            label_trees(errors),
             '💾' if 'nexus' not in errors else '',
             '🏷' if 'characters' not in errors else '',
             '💬' if 'data' not in errors else '',
             'CLDF' if 'cldf' not in errors else '',
             '🎈' if 'source' not in errors else '',
+            '📄' if 'notes' not in errors else '',
         ])
-    headers = headers=['#', 'Dataset', 'Paper', 'Tree', 'Post.', 'Nex', 'Chars', 'Data', 'CLDF', 'Bib']
+    headers = headers=['#', 'Dataset', 'Paper', 'Tree', 'Nex', 'Chars', 'Data', 'CLDF', 'Bib', 'Notes']
     print(tabulate(rows, headers=headers, tablefmt="github"))
 
 

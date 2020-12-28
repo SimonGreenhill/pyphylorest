@@ -77,10 +77,6 @@ class Phlorest:
     def source(self):
         return self._get("source.bib")
 
-    @property
-    def notes(self):
-        return self._get("notes.txt")
-
     # dirs
     @property
     def original(self):
@@ -93,6 +89,10 @@ class Phlorest:
     @property
     def nexus(self):
         return self._get("data.nex")
+
+    @property
+    def notes(self):
+        return self._get("notes.md")
 
     @property
     def characters(self):
@@ -140,26 +140,27 @@ class Phlorest:
             nex = NexusReader(self.nexus)
             if not nex.data:
                 warn("No data in %s data.nex!" % self.details.get('id', '?'))
-            unknown = [t for t in nex.data.taxa if t not in self.taxa]
-            if len(unknown):
-                warn(
-                    "Unknown tips in %s data.nex: %r" % (self.details.get('id', '?'), unknown)
-                )
+            else:
+                unknown = [t for t in nex.data.taxa if t not in self.taxa]
+                if len(unknown):
+                    warn(
+                        "Unknown tips in %s data.nex: %r" % (self.details.get('id', '?'), unknown)
+                    )
         
         # if we have characters they should match the nexus
         if self.characters and self.nexus:
             nex = NexusReader(self.nexus)
-            if not nex.data:
+            if not nex.data or not nex.data.taxa:
                 warn("No data in %s.%s!" % (self.details.get('id', '?'), tf.stem))
-            
-            if [i for i, r in enumerate(read_csv(self.characters), 1)][-1] != nex.data.nchar:
-                warn("characters.csv incorrect in %s!" % self.details.get('id', '?'))
+            else:
+                if [i for i, r in enumerate(read_csv(self.characters), 1)][-1] != nex.data.nchar:
+                    warn("characters.csv incorrect in %s!" % self.details.get('id', '?'))
             
         
     def check(self, validate=False):
         attrs = [
             'makefile', 'source',
-            'original', 'paper', 'data',
+            'original', 'paper', 'data', 'notes',
             'nexus', 'characters',
             'cldf',
             'summary', 'posterior',

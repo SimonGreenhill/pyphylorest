@@ -3,6 +3,7 @@ import pytest
 
 import phlorest
 from phlorest import __main__
+from phlorest.commands import CHECKMARK
 
 from clldutils.clilib import ParserError
 
@@ -16,12 +17,18 @@ def test_listdatasets(repos, mocker, capsys):
 
 
 def test_check(repos, mocker, capsys):
-    with pytest.warns(UserWarning, match='No data in greenhill2015'):
-        phlorest.commands.check(mocker.Mock(repos=repos, args=[]))
+    errors = phlorest.commands.check(mocker.Mock(repos=repos, args=[]))
     captured = capsys.readouterr()
     assert 'Dataset' in captured.out
     assert 'testdata' in captured.out
-    assert '✅' in captured.out
+    assert CHECKMARK in captured.out
+
+
+def test_validate(repos, mocker, capsys):
+    phlorest.commands.validate(mocker.Mock(repos=repos, args=[]))
+    captured = capsys.readouterr()
+    assert 'No data in greenhill2015 data.nex!' in captured.out
+    assert 'No data in greenhill2015.posterior!' in captured.out
 
 
 def test_new(repos, mocker):
