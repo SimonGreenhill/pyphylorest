@@ -15,7 +15,7 @@ URL = 'https://github.com/SimonGreenhill/phlorest'
 EMAIL = 'simon@simon.net.nz'
 AUTHOR = 'Simon J. Greenhill'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '0.2'
+VERSION = '0.3'
 
 
 here = os.path.abspath(os.path.dirname(__file__))
