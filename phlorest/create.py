@@ -15,7 +15,23 @@ data:
 cldf:
 missing:
 """
-files_to_create['notes.txt'] = """# Notes\n"""
+files_to_create['notes.md'] = """# Notes\n
+
+## Data:
+
+> 
+
+## Methods:
+
+| Model                                | Score    | Program  | Comment            |
+|--------------------------------------|----------|----------|--------------------|
+|                                      |          |          |                    |
+|                                      |          |          |                    |
+
+## Analysis:
+
+> 
+"""
 
 files_to_create['taxa.csv'] = "taxon,isocode,glottocode,xd_ids,soc_ids\n"
 

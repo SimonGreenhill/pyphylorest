@@ -13,14 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 SCALINGS = [
-    None,
-    'NA',  # no branch lengths
-    'arbitrary', 
-    'change',  # parsimony steps
+    'none',           # no branch lengths
+    'change',         # parsimony steps
     'substitutions',  # change
-    'years',  # years
-    'centuries',  # centuries
-    'millennia',  # millennia
+    'years',          # years
+    'centuries',      # centuries
+    'millennia',      # millennia
 ]
 
 
@@ -120,8 +118,18 @@ class Phlorest:
             warn(
                 "Unknown Scaling '%s'" % self.details.get('scaling')
             )
+        
+        # check taxa file
         if len(self.taxa) == 0:
             warn("No taxa defined")
+        if self.taxa and not len(self.taxa.keys()):
+            warn("Empty taxa file")
+            
+        # check source file
+        if not self.source:
+            warn("No source bibtex")
+        if self.source and len(self.source.read_text()) == 0:
+            warn("Empty bibtex file")
         
         # check trees
         for tf in [self.summary, self.posterior]:
@@ -135,6 +143,7 @@ class Phlorest:
                     warn(
                         "Unknown tips in %s.%s: %r" % (self.details.get('id', '?'), tf.stem, unknown)
                     )
+        
         # if we have a data file, the taxa should match the taxa.csv
         if self.nexus and self.taxa:
             nex = NexusReader(self.nexus)
@@ -153,8 +162,11 @@ class Phlorest:
             if not nex.data or not nex.data.taxa:
                 warn("No data in %s.%s!" % (self.details.get('id', '?'), tf.stem))
             else:
-                if [i for i, r in enumerate(read_csv(self.characters), 1)][-1] != nex.data.nchar:
-                    warn("characters.csv incorrect in %s!" % self.details.get('id', '?'))
+                nchar = [i for i, r in enumerate(read_csv(self.characters), 1)][-1]
+                if  nchar != nex.data.nchar:
+                    warn("characters.csv incorrect in %s - expected %d, got %d" % (
+                        self.details.get('id', '?'), nex.data.nchar, nchar)
+                    )
             
         
     def check(self, validate=False):

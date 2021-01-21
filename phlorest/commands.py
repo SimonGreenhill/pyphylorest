@@ -19,6 +19,20 @@ def listdatasets(args):
             out += '🌳'
         return out
     
+    def label_scaling(s):
+        if s == 'years':
+            return 'Y'
+        elif s == 'substitutions':
+            return 'S'
+        elif s == 'change':
+            return 'C'
+        elif s == 'millennia':
+            return 'M'
+        elif s == 'none':
+            return '-'
+        else:
+            return ERROR
+    
     rows = []
     for i, ds in enumerate(sorted(args.repos.datasets), 1):
         errors = args.repos.datasets[ds].check()
@@ -27,14 +41,15 @@ def listdatasets(args):
             ds,
             '🗞' if 'paper' not in errors else '',
             label_trees(errors),
+            label_scaling(args.repos.datasets[ds].details['scaling']),
             '💾' if 'nexus' not in errors else '',
-            '🏷' if 'characters' not in errors else '',
-            '💬' if 'data' not in errors else '',
-            'CLDF' if 'cldf' not in errors else '',
-            '🎈' if 'source' not in errors else '',
-            '📄' if 'notes' not in errors else '',
+            CHECKMARK if 'characters' not in errors else '',
+            CHECKMARK if 'data' not in errors else '',
+            CHECKMARK if 'cldf' not in errors else '',
+            CHECKMARK if 'source' not in errors else '',
+            CHECKMARK if 'notes' not in errors else '',
         ])
-    headers = headers=['#', 'Dataset', 'Paper', 'Tree', 'Nex', 'Chars', 'Data', 'CLDF', 'Bib', 'Notes']
+    headers = headers=['#', 'Dataset', 'Paper', 'Tree', 'S', 'Nex', 'Chars', 'Data', 'CLDF', 'Bib', 'Notes']
     print(tabulate(rows, headers=headers, tablefmt="github"))
 
 
@@ -58,7 +73,11 @@ def check(args):
 
 @command(name='validate', usage="runs validation")
 def validate(args):
-    for ds in sorted(args.repos.datasets):
+    to_validate = args.repos.datasets
+    if len(args.args):
+        to_validate = [ds for ds in to_validate if ds in args.args]
+
+    for ds in sorted(to_validate):
         with warnings.catch_warnings(record=True) as warned:
             warnings.simplefilter("always")
             args.repos.datasets[ds].validate()
